@@ -53,14 +53,14 @@ namespace WPEFramework
         static GnomeNetworkManagerEvents* getInstance();
         bool startNetworkMangerEventMonitor();
         void stopNetworkMangerEventMonitor();
-        void setwifiScanOptions(bool doScan, bool enableLogs = false);
+        void setwifiScanOptions(bool doNotify, bool enableLogs = false);
 
     private:
         static void* networkMangerEventMonitor(void *arg);
         GnomeNetworkManagerEvents();
         ~GnomeNetworkManagerEvents();
         std::atomic<bool>isEventThrdActive = {false};
-        std::atomic<bool>stopWifiScan = {false};
+        std::atomic<bool>doScanNotify = {false};
         std::atomic<bool>debugLogs = {false};
         NMEvents nmEvents;
         GThread *eventThrdID;

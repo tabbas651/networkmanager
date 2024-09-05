@@ -36,12 +36,18 @@ namespace WPEFramework
         class wifiManager
         {
         public:
-            static wifiManager* getInstance();
+            static wifiManager* getInstance()
+            {
+                static wifiManager instance;
+                return &instance;
+            }
+
             bool isWifiConnected();
             bool wifiDisconnect();
             bool wifiConnectedSSIDInfo(Exchange::INetworkManager::WiFiSSIDInfo &ssidinfo);
             bool wifiConnect(Exchange::INetworkManager::WiFiConnectTo wifiData);
             bool wifiScanRequest(const Exchange::INetworkManager::WiFiFrequency frequency, std::string ssidReq = "");
+            bool isWifiScannedRecently(int timelimitInSec = 10); // default 10 sec as shotest scanning interval
             bool getKnownSSIDs(std::list<string>& ssids);
             bool addToKnownSSIDs(const Exchange::INetworkManager::WiFiConnectTo ssidinfo);
             bool removeKnownSSID(const string& ssid);
@@ -52,7 +58,18 @@ namespace WPEFramework
 
         private:
             wifiManager();
-            ~wifiManager();
+            ~wifiManager() {
+                NMLOG_INFO("~wifiManager");
+                g_main_context_pop_thread_default(nmContext);
+                if(client != NULL) {
+                    g_object_unref(client);
+                    client = NULL;
+                }
+                if(loop != NULL) {
+                    g_main_loop_unref(loop);
+                    loop = NULL;
+                }
+            }
 
             wifiManager(wifiManager const&) = delete;
             void operator=(wifiManager const&) = delete;
@@ -70,5 +87,5 @@ namespace WPEFramework
             guint wifiDeviceStateGsignal = 0;
             bool isSuccess = false;
         };
-    }
-}
+    }   // Plugin
+}   // WPEFramework

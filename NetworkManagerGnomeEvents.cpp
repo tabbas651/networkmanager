@@ -40,9 +40,6 @@ namespace WPEFramework
     extern NetworkManagerImplementation* _instance;
     static GnomeNetworkManagerEvents *_nmEventInstance = nullptr;
 
-    // const char* ifnameEth = "enx207bd51e02ad";
-    // const char* ifnameWlan = "wlp0s20f3";
-
     static void primaryConnectionCb(NMClient *client, GParamSpec *param, NMEvents *nmEvents)
     {
         NMActiveConnection *primaryConn;
@@ -136,7 +133,7 @@ namespace WPEFramework
                         wifiState = "WIFI_STATE_CONNECTING";
                         GnomeNetworkManagerEvents::onWIFIStateChanged(Exchange::INetworkManager::WIFI_STATE_CONNECTING);
                         break;
-                    case NM_DEVICE_STATE_IP_CONFIG:
+                    case NM_DEVICE_STATE_IP_CHECK:
                         GnomeNetworkManagerEvents::onInterfaceStateChangeCb(Exchange::INetworkManager::INTERFACE_ACQUIRING_IP,"wlan0");
                         break;
                     case NM_DEVICE_STATE_ACTIVATED:
@@ -280,10 +277,7 @@ namespace WPEFramework
             else if(ifname == nmEvents->ifnameEth0) {
                 GnomeNetworkManagerEvents::onInterfaceStateChangeCb(Exchange::INetworkManager::INTERFACE_ADDED, "eth0");
             }
-            else {
-                // TODO Check and remove if not needed
-                GnomeNetworkManagerEvents::onInterfaceStateChangeCb(Exchange::INetworkManager::INTERFACE_ADDED, ifname);
-            }
+
             /* ip events added only for eth0 and wlan0 */
             if((ifname == nmEvents->ifnameEth0) || (ifname == nmEvents->ifnameWlan0))
             {
@@ -316,10 +310,6 @@ namespace WPEFramework
             else if(ifname == nmEvents->ifnameEth0) {
                 GnomeNetworkManagerEvents::onInterfaceStateChangeCb(Exchange::INetworkManager::INTERFACE_REMOVED, "eth0");
                 g_signal_handlers_disconnect_by_func(device, (gpointer)deviceStateChangeCb, nmEvents);
-            }
-            else {
-                // TODO Check and remove if not needed
-                GnomeNetworkManagerEvents::onInterfaceStateChangeCb(Exchange::INetworkManager::INTERFACE_REMOVED, ifname);
             }
         }
 
@@ -463,6 +453,12 @@ namespace WPEFramework
     GnomeNetworkManagerEvents::GnomeNetworkManagerEvents()
     {
         NMLOG_TRACE("GnomeNetworkManagerEvents");
+        std::string wifiInterface = "wlan0", ethernetInterface = "eth0";
+        if(!nmUtils::GetInterfacesName(wifiInterface, ethernetInterface))
+        {
+            NMLOG_FATAL("GetInterfacesName failed");
+            return;
+        }
         GError *error = NULL;
         nmEvents.client = nm_client_new(NULL, &error);
         if(!nmEvents.client || error )
@@ -482,8 +478,6 @@ namespace WPEFramework
             return;
         }
         _nmEventInstance = this;
-        std::string wifiInterface = "wlan0", ethernetInterface = "eth0";
-        nmUtils::GetInterfacesName(wifiInterface, ethernetInterface);
         nmEvents.ifnameEth0 = ethernetInterface;
         nmEvents.ifnameWlan0 = wifiInterface;
     }
@@ -529,8 +523,8 @@ namespace WPEFramework
             default:
                 state = "Unknown";
         }
-        NMLOG_INFO("%s interface state changed - %s", iface.c_str(), state.c_str());
-        if(_instance != nullptr)
+        NMLOG_TRACE("%s interface state changed - %s", iface.c_str(), state.c_str());
+        if(_instance != nullptr && (iface == _nmEventInstance->nmEvents.ifnameWlan0 || iface == _nmEventInstance->nmEvents.ifnameEth0))
             _instance->ReportInterfaceStateChangedEvent(static_cast<Exchange::INetworkManager::InterfaceState>(newState), iface);
     }
 
@@ -576,7 +570,7 @@ namespace WPEFramework
 
     void GnomeNetworkManagerEvents::onAvailableSSIDsCb(NMDeviceWifi *wifiDevice, GParamSpec *pspec, gpointer userData)
     {
-        NMLOG_INFO("wifi scanning completed ...");
+        NMLOG_TRACE("wifi scanning completed ...");
         if(!NM_IS_DEVICE_WIFI(wifiDevice))
         {
             NMLOG_ERROR("Not a wifi object ");
@@ -597,21 +591,22 @@ namespace WPEFramework
         ssidList.ToString(ssidListJson);
         if(_nmEventInstance->debugLogs) {
             _nmEventInstance->debugLogs = false;
-            NMLOG_TRACE("Number of Access Points Available = %d", static_cast<int>(accessPoints->len));
+            NMLOG_INFO("Number of Access Points Available = %d", static_cast<int>(accessPoints->len));
             NMLOG_TRACE("Scanned APIs are  = %s",ssidListJson.c_str());
         }
 
-        if(!_nmEventInstance->stopWifiScan) {
+        if(_nmEventInstance->doScanNotify) {
+            _nmEventInstance->doScanNotify = false;
             _instance->ReportAvailableSSIDsEvent(ssidListJson);
         }
     }
 
-    void GnomeNetworkManagerEvents::setwifiScanOptions(bool doScan, bool enableLogs)
+    void GnomeNetworkManagerEvents::setwifiScanOptions(bool doNotify, bool enableLogs)
     {
-        stopWifiScan.store(doScan);
-        if(stopWifiScan)
+        doScanNotify.store(doNotify);
+        if(!doScanNotify)
         {
-            NMLOG_WARNING("stop periodic wifi scan result");
+            NMLOG_TRACE("stop periodic wifi scan result notify");
         }
         debugLogs = enableLogs;
     }
