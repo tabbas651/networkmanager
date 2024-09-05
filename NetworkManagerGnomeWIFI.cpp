@@ -34,22 +34,8 @@ namespace WPEFramework
     namespace Plugin
     {
 
-        wifiManager* wifiManager::getInstance()
-        {
-            static wifiManager instance;
-            return &instance;
-        }
-
-        wifiManager::~wifiManager() {
-            NMLOG_INFO("~wifiManager");
-            g_main_context_pop_thread_default(nmContext);
-            if(loop != NULL)
-                g_main_loop_unref(loop);
-            if(client != NULL)
-                g_object_unref(client);
-        }
-
         wifiManager::wifiManager() : client(nullptr), loop(nullptr), createNewConnection(false) {
+            NMLOG_INFO("wifiManager");
             nmContext = g_main_context_new();
             g_main_context_push_thread_default(nmContext);
             loop = g_main_loop_new(nmContext, FALSE);
@@ -104,7 +90,7 @@ namespace WPEFramework
                 NMLOG_WARNING("g_main_loop_is running");
                 return false;
             }
-            source = g_timeout_source_new(10000);  // 10000ms interval
+            source = g_timeout_source_new(timeOutMs);  // 10000ms interval
             g_source_set_callback(source, (GSourceFunc)gmainLoopTimoutCB, this, NULL);
             g_source_attach(source, NULL);
             g_main_loop_run(loop);
@@ -143,6 +129,21 @@ namespace WPEFramework
             if (wifiDevice == NULL || !NM_IS_DEVICE_WIFI(wifiDevice))
             {
                 NMLOG_ERROR("Wireless Device not found !");
+                return NULL;
+            }
+
+            NMDeviceState deviceState = NM_DEVICE_STATE_UNKNOWN;
+            deviceState = nm_device_get_state(wifiDevice);
+            switch (deviceState)
+            {
+                case NM_DEVICE_STATE_UNKNOWN:
+                case NM_DEVICE_STATE_UNMANAGED:
+                case NM_DEVICE_STATE_UNAVAILABLE:
+                     NMLOG_WARNING("wifi device state is not vallied; state: (%d)", deviceState);
+                     return NULL;
+                break;
+            default:
+                break;
             }
 
             return wifiDevice;
@@ -187,9 +188,18 @@ namespace WPEFramework
             if (ssid) {
                 gsize size;
                 const guint8 *ssidData = static_cast<const guint8 *>(g_bytes_get_data(ssid, &size));
-                std::string ssidTmp(reinterpret_cast<const char *>(ssidData), size);
-                wifiInfo.m_ssid = ssidTmp;
-                NMLOG_INFO("ssid: %s", wifiInfo.m_ssid.c_str());
+                if(size<=32)
+                {
+                    std::string ssidTmp(reinterpret_cast<const char *>(ssidData), size);
+                    wifiInfo.m_ssid = ssidTmp;
+                    NMLOG_INFO("ssid: %s", wifiInfo.m_ssid.c_str());
+                }
+                else
+                {
+                    NMLOG_ERROR("Invallied ssid length Error");
+                    wifiInfo.m_ssid.clear();
+                    return;
+                }
             }
             else
             {
@@ -860,7 +870,7 @@ namespace WPEFramework
             isSuccess = false;
             if(!ssidReq.empty())
             {
-                NMLOG_TRACE("staring wifi scanning .. %s", ssidReq.c_str());
+                NMLOG_INFO("staring wifi scanning .. %s", ssidReq.c_str());
                 GVariantBuilder builder, array_builder;
                 GVariant *options;
                 g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
@@ -871,14 +881,47 @@ namespace WPEFramework
                 g_variant_builder_add(&builder, "{sv}", "ssids", g_variant_builder_end(&array_builder));
                 g_variant_builder_add(&builder, "{sv}", "hidden", g_variant_new_boolean(TRUE));
                 options = g_variant_builder_end(&builder);
-                nm_device_wifi_request_scan_options_async(NM_DEVICE_WIFI(wifiDevice), options, NULL, wifiScanCb, this);
+                nm_device_wifi_request_scan_options_async(wifiDevice, options, NULL, wifiScanCb, this);
             }
             else {
                 NMLOG_TRACE("staring normal wifi scanning");
-                nm_device_wifi_request_scan_async(NM_DEVICE_WIFI(wifiDevice), NULL, wifiScanCb, this);
+                nm_device_wifi_request_scan_async(wifiDevice, NULL, wifiScanCb, this);
             }
             wait(loop);
             return isSuccess;
         }
+
+        bool wifiManager::isWifiScannedRecently(int timelimitInSec)
+        {
+            if (!createClientNewConnection())
+                return false;
+
+            NMDeviceWifi *wifiDevice = NM_DEVICE_WIFI(getNmDevice());
+            if (wifiDevice == NULL) {
+                NMLOG_ERROR("Invalid Wi-Fi device.");
+                return false;
+            }
+
+            gint64 last_scan_time = nm_device_wifi_get_last_scan(wifiDevice);
+            if (last_scan_time <= 0) {
+                NMLOG_INFO("No scan has been performed yet");
+                return false;
+            }
+
+            gint64 current_time_in_msec = nm_utils_get_timestamp_msec();
+            gint64 time_difference_in_seconds = (current_time_in_msec - last_scan_time) / 1000;
+
+            NMLOG_TRACE("Current time in milliseconds: %" G_GINT64_FORMAT, current_time_in_msec);
+            NMLOG_TRACE("Last scan time in milliseconds: %" G_GINT64_FORMAT, last_scan_time);
+            NMLOG_TRACE("Time difference in seconds: %" G_GINT64_FORMAT, time_difference_in_seconds);
+
+            if (time_difference_in_seconds <= timelimitInSec) {
+                return true;
+            }
+            NMLOG_TRACE("Last Wi-Fi scan exceeded time limit.");
+        return false;
+    }
+
+
     } // namespace Plugin
 } // namespace WPEFramework

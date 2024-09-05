@@ -33,7 +33,8 @@ namespace WPEFramework
         {
 
             public:
-               static uint32_t GetInterfacesName(string &wifiInterface, string &ethernetInterface);
+               static bool GetInterfacesName(std::string &wifiIfname ,std::string &ethIfname);
+               static bool caseInsensitiveCompare(const std::string& str1, const std::string& str2);
                static uint8_t wifiSecurityModeFromAp(guint32 flags, guint32 wpaFlags, guint32 rsnFlags);
                static std::string wifiFrequencyFromAp(guint32 apFreq);
                static std::string getSecurityModeString(guint32 flags, guint32 wpaFlags, guint32 rsnFlags);
@@ -43,8 +44,3 @@ namespace WPEFramework
 
     }
 }
-
-/*
-    // Set up a timer to check the device state reason every second
-    g_timeout_add_seconds(1, check_device_state_reason, NULL);
- */
