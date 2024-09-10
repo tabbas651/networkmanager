@@ -28,9 +28,10 @@ namespace WPEFramework {
             Network(const Network&) = delete;
             Network& operator=(const Network&) = delete;
 
-            void RegisterLegacyMethods();
-            void UnregisterLegacyMethods();
+            void registerLegacyMethods(void);
+            void unregisterLegacyMethods(void);
             void subscribeToEvents(void);
+            void doTheSubscriptions(void);
             static std::string getInterfaceMapping(const std::string &interface);
             void activatePrimaryPlugin();
 

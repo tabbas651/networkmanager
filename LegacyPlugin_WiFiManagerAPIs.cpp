@@ -26,7 +26,7 @@ using namespace WPEFramework::Plugin;
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
 #define NETWORK_MANAGER_CALLSIGN    "org.rdk.NetworkManager.1"
-#define SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS 5000
+#define SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS 500
 
 #define LOGINFOMETHOD() { string json; parameters.ToString(json); NMLOG_TRACE("Legacy params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { string json; response.ToString(json); NMLOG_TRACE("Legacy response=%s", json.c_str() ); }
@@ -73,7 +73,7 @@ namespace WPEFramework
        {
            _gWiFiInstance = this;
            m_timer.connect(std::bind(&WiFiManager::subscribeToEvents, this));
-           RegisterLegacyMethods();
+           registerLegacyMethods();
        }
 
         WiFiManager::~WiFiManager()
@@ -150,13 +150,13 @@ namespace WPEFramework
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
             m_networkmanager = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(_T(NETWORK_MANAGER_CALLSIGN), _T(NETWORK_MANAGER_CALLSIGN), false, query);
 
-            m_timer.start(SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS);
+            doTheSubscriptions();
             return string();
         }
 
         void WiFiManager::Deinitialize(PluginHost::IShell* /* service */)
         {
-            UnregisterLegacyMethods();
+            unregisterLegacyMethods();
             m_service->Release();
             m_service = nullptr;
             _gWiFiInstance = nullptr;
@@ -176,7 +176,7 @@ namespace WPEFramework
          *  * Method name
          *  * Function that implements that method
          */
-        void WiFiManager::RegisterLegacyMethods()
+        void WiFiManager::registerLegacyMethods(void)
         {
             CreateHandler({2});
             Register("cancelWPSPairing",                  &WiFiManager::cancelWPSPairing, this);
@@ -199,7 +199,7 @@ namespace WPEFramework
         /**
          * Unregister all our JSON-RPC methods
          */
-        void WiFiManager::UnregisterLegacyMethods()
+        void WiFiManager::unregisterLegacyMethods(void)
         {
             Unregister("cancelWPSPairing");
             Unregister("clearSSID");
@@ -492,6 +492,21 @@ namespace WPEFramework
         }
 
         /** Private */
+        void WiFiManager::doTheSubscriptions(void)
+        {
+            uint32_t result = Core::ERROR_ASYNC_FAILED;
+            Core::Event event(false, true);
+            Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]() {
+                NMLOG_INFO ("Start Subscription %s", __FUNCTION__);
+                subscribeToEvents();
+                m_timer.start(SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS);
+                event.SetEvent();
+            })));
+            event.Lock();
+
+            return;
+        }
+
         void WiFiManager::subscribeToEvents(void)
         {
             uint32_t errCode = Core::ERROR_GENERAL;
@@ -503,7 +518,7 @@ namespace WPEFramework
                     if (Core::ERROR_NONE == errCode)
                         m_subsWiFiStateChange = true;
                     else
-                        NMLOG_ERROR ("Subscribe to onInterfaceStateChange failed, errCode: %u", errCode);
+                        NMLOG_ERROR ("Subscribe to onWiFiStateChange failed, errCode: %u", errCode);
                 }
 
                 if (!m_subsAvailableSSIDs)
@@ -512,7 +527,7 @@ namespace WPEFramework
                     if (Core::ERROR_NONE == errCode)
                         m_subsAvailableSSIDs = true;
                     else
-                        NMLOG_ERROR("Subscribe to onIPAddressChange failed, errCode: %u", errCode);
+                        NMLOG_ERROR("Subscribe to onAvailableSSIDs failed, errCode: %u", errCode);
                 }
 
                 if (!m_subsWiFiStrengthChange)
@@ -521,12 +536,17 @@ namespace WPEFramework
                     if (Core::ERROR_NONE == errCode)
                         m_subsWiFiStrengthChange = true;
                     else
-                        NMLOG_ERROR("Subscribe to onActiveInterfaceChange failed, errCode: %u", errCode);
+                        NMLOG_ERROR("Subscribe to onWiFiSignalStrengthChange failed, errCode: %u", errCode);
                 }
             }
+            else
+                NMLOG_ERROR("m_subsWiFiStateChange is null");
 
             if (m_subsWiFiStateChange && m_subsAvailableSSIDs && m_subsWiFiStrengthChange)
+            {
                 m_timer.stop();
+                NMLOG_INFO("subscriber timer stoped");
+            }
         }
 
          bool WiFiManager::ErrorCodeMapping(const uint32_t ipvalue, uint32_t &opvalue)
@@ -584,11 +604,13 @@ namespace WPEFramework
                 {
                     legacyErrorResult["code"] = errorCode;
                     NMLOG_INFO("onError with errorcode as, %u",  errorCode);
+                    NMLOG_INFO("Posting onError");
                     _gWiFiInstance->Notify("onError", legacyErrorResult);
                 }
                 else
                 {
                     NMLOG_INFO("onWiFiStateChange with state as: %u", state);
+                    NMLOG_INFO("Posting onWIFIStateChanged");
                     _gWiFiInstance->Notify("onWIFIStateChanged", legacyResult);
                 }
             }
@@ -599,6 +621,7 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
 
+            NMLOG_INFO("Posting onAvailableSSIDs");
             if(_gWiFiInstance)
                 _gWiFiInstance->Notify("onAvailableSSIDs", parameters);
 
@@ -611,7 +634,7 @@ namespace WPEFramework
             JsonObject legacyParams;
             legacyParams["signalStrength"] = parameters["signalQuality"];
             legacyParams["strength"] = parameters["signalLevel"];
-
+            NMLOG_INFO("Posting onWifiSignalThresholdChanged");
             if (_gWiFiInstance)
                 _gWiFiInstance->Notify("onWifiSignalThresholdChanged", legacyParams);
 

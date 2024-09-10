@@ -26,7 +26,7 @@ using namespace WPEFramework::Plugin;
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
 #define NETWORK_MANAGER_CALLSIGN    "org.rdk.NetworkManager.1"
-#define SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS 5000
+#define SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS 500
 
 #define LOGINFOMETHOD() { string json; parameters.ToString(json); NMLOG_TRACE("Legacy params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { string json; response.ToString(json); NMLOG_TRACE("Legacy response=%s", json.c_str() ); }
@@ -74,7 +74,7 @@ namespace WPEFramework
            _gNWInstance = this;
            m_defaultInterface = "wlan0";
            m_timer.connect(std::bind(&Network::subscribeToEvents, this));
-           RegisterLegacyMethods();
+           registerLegacyMethods();
        }
 
         Network::~Network()
@@ -153,13 +153,13 @@ namespace WPEFramework
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
             m_networkmanager = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(_T(NETWORK_MANAGER_CALLSIGN), _T(NETWORK_MANAGER_CALLSIGN), false, query);
 
-            m_timer.start(SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS);
+            doTheSubscriptions();
             return string();
         }
 
         void Network::Deinitialize(PluginHost::IShell* /* service */)
         {
-            UnregisterLegacyMethods();
+            unregisterLegacyMethods();
             m_service->Release();
             m_service = nullptr;
             _gNWInstance = nullptr;
@@ -179,7 +179,7 @@ namespace WPEFramework
          *  * Method name
          *  * Function that implements that method
          */
-        void Network::RegisterLegacyMethods()
+        void Network::registerLegacyMethods(void)
         {
             CreateHandler({2});
 
@@ -209,7 +209,7 @@ namespace WPEFramework
         /**
          * Unregister all our JSON-RPC methods
          */
-        void Network::UnregisterLegacyMethods()
+        void Network::unregisterLegacyMethods(void)
         {
             Unregister("getInterfaces");
             Unregister("isInterfaceEnabled");
@@ -777,6 +777,21 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
         }
 
         /** Private */
+        void Network::doTheSubscriptions(void)
+        {
+            uint32_t result = Core::ERROR_ASYNC_FAILED;
+            Core::Event event(false, true);
+            Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]() {
+                NMLOG_INFO ("Start Subscription %s", __FUNCTION__);
+                subscribeToEvents();
+                m_timer.start(SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS);
+                event.SetEvent();
+            })));
+            event.Lock();
+
+            return;
+        }
+
         void Network::subscribeToEvents(void)
         {
             uint32_t errCode = Core::ERROR_GENERAL;
@@ -824,9 +839,14 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                     }
                 }
             }
+            else
+                NMLOG_ERROR("m_networkmanager is null");
 
             if (m_subsIfaceStateChange && m_subsActIfaceChange && m_subsIPAddrChange && m_subsInternetChange)
+            {
                 m_timer.stop();
+                NMLOG_INFO("subscriber timer stoped");
+            }
         }
 
         string Network::getInterfaceMapping(const string & interface)
@@ -860,10 +880,12 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
             if((state == "INTERFACE_ADDED") || (state == "INTERFACE_REMOVED"))
             {
+                NMLOG_INFO("Posting onInterfaceStatusChanged");
                 Notify("onInterfaceStatusChanged", legacyParams);
             }
             else if((state == "INTERFACE_LINK_UP") || (state == "INTERFACE_LINK_DOWN"))
             {
+                NMLOG_INFO("Posting onConnectionStatusChanged");
                 Notify("onConnectionStatusChanged", legacyParams);
             }
 
@@ -879,6 +901,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             legacyParams["newInterfaceName"] = getInterfaceMapping(parameters["newInterfaceName"].String());
 
             m_defaultInterface = parameters["newInterfaceName"].String();
+            NMLOG_INFO("Posting onDefaultInterfaceChanged");
             Notify("onDefaultInterfaceChanged", legacyParams);
             return;
         }
@@ -901,7 +924,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             }
 
             legacyParams["status"] = parameters["status"];
-
+            NMLOG_INFO("Posting onIPAddressStatusChanged");
             Notify("onIPAddressStatusChanged", legacyParams);
 
             if ("ACQUIRED" == parameters["status"].String())
@@ -912,6 +935,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
         void Network::ReportonInternetStatusChange(const JsonObject& parameters)
         {
+            NMLOG_INFO("Posting onInternetStatusChange");
             Notify("onInternetStatusChange", parameters);
             return;
         }
