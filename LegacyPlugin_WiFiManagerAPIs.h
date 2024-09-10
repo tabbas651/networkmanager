@@ -96,9 +96,10 @@ namespace WPEFramework {
             virtual string Information() const override;
 
         private:
-            void RegisterLegacyMethods();
-            void UnregisterLegacyMethods();
+            void registerLegacyMethods(void);
+            void unregisterLegacyMethods(void);
             void subscribeToEvents(void);
+            void doTheSubscriptions(void);
             static std::string getInterfaceMapping(const std::string &interface);
             static bool ErrorCodeMapping(const uint32_t ipvalue , uint32_t &opvalue);
             void activatePrimaryPlugin();
