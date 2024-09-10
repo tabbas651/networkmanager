@@ -27,6 +27,7 @@ using namespace WPEFramework::Plugin;
 #define API_VERSION_NUMBER_PATCH 0
 #define NETWORK_MANAGER_CALLSIGN    "org.rdk.NetworkManager.1"
 #define SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS 500
+#define DEFAULT_PING_PACKETS 15
 
 #define LOGINFOMETHOD() { string json; parameters.ToString(json); NMLOG_TRACE("Legacy params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { string json; response.ToString(json); NMLOG_TRACE("Legacy response=%s", json.c_str() ); }
@@ -577,12 +578,15 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 tmpParameters["ipversion"] = "IPv4";
             else if (inet_pton(AF_INET6, endpoint.c_str(), &ipv6address) > 0)
                 tmpParameters["ipversion"] = "IPv6";
-            
-            tmpParameters["noOfRequest"] = parameters["packets"];
+
+            if (parameters.HasLabel("packets"))
+                tmpParameters["noOfRequest"] = parameters["packets"];
+            else
+                tmpParameters["noOfRequest"] = DEFAULT_PING_PACKETS;
             tmpParameters["endpoint"] = parameters["endpoint"];
             tmpParameters["timeout"] = 5;
             tmpParameters["guid"] = parameters["guid"];
-            
+
             if (m_networkmanager)
                 rc = m_networkmanager->Invoke<JsonObject, JsonObject>(15000, _T("Ping"), tmpParameters, response);
             else
