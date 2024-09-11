@@ -264,6 +264,13 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                                                      "255.255.255.255",
                                                    };
 
+        static bool caseInsensitiveCompare(const std::string& str1, const char* str2)
+        {
+            std::string upperStr1 = str1;
+            std::transform(upperStr1.begin(), upperStr1.end(), upperStr1.begin(), ::toupper);
+            return upperStr1 == str2;
+        }
+
         uint32_t Network::getInterfaces (const JsonObject& parameters, JsonObject& response)
         {
             uint32_t rc = Core::ERROR_GENERAL;
@@ -323,13 +330,13 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             uint32_t rc = Core::ERROR_GENERAL;
             string interface;
             JsonObject tmpParameters;
-            
+
             LOGINFOMETHOD();
-            if("WIFI" == parameters["interface"].String())
+            if(caseInsensitiveCompare(parameters["interface"].String(),"WIFI"))
                 interface = "wlan0";
-            else if("ETHERNET" == parameters["interface"].String())
+            else if(caseInsensitiveCompare(parameters["interface"].String(), "ETHERNET"))
                 interface = "eth0";
-            
+
             tmpParameters["interface"] = interface;
             tmpParameters["enabled"]  = parameters["enabled"];
 
@@ -374,9 +381,9 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             JsonObject tmpParameters;
             string interface;
             LOGINFOMETHOD();
-            if("WIFI" == parameters["interface"].String())
+            if(caseInsensitiveCompare(parameters["interface"].String(), "WIFI"))
                 tmpParameters["interface"] = "wlan0";
-            else if("ETHERNET" == parameters["interface"].String())
+            else if(caseInsensitiveCompare(parameters["interface"].String(), "ETHERNET"))
                 tmpParameters["interface"] = "eth0";
             
             if (m_networkmanager)
@@ -396,9 +403,9 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             JsonObject tmpParameters;
             LOGINFOMETHOD();
             
-            if("WIFI" == parameters["interface"].String())
+            if(caseInsensitiveCompare(parameters["interface"].String(), "WIFI"))
                 tmpParameters["interface"] = "wlan0";
-            else if("ETHERNET" == parameters["interface"].String())
+            else if(caseInsensitiveCompare(parameters["interface"].String(), "ETHERNET"))
                 tmpParameters["interface"] = "eth0";
             
             tmpParameters["ipversion"] = parameters["ipversion"];
@@ -440,9 +447,9 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 tmpParameters["ipversion"] = parameters["ipversion"];
             if (parameters.HasLabel("interface"))
             {
-                if ("WIFI" == parameters["interface"].String())
+                if (caseInsensitiveCompare(parameters["interface"].String(), "WIFI"))
                     tmpParameters["interface"] = "wlan0";
-                else if("ETHERNET" == parameters["interface"].String())
+                else if(caseInsensitiveCompare(parameters["interface"].String(), "ETHERNET"))
                     tmpParameters["interface"] = "eth0";
             }
 
@@ -473,14 +480,14 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 response["ipaddr"]       = tmpResponse["ipaddress"];
                 if(tmpResponse["ipaddress"].String().empty())
                     response["netmask"]  = "";
-                else if ("IPV4" == ipversion)
+                else if (caseInsensitiveCompare(ipversion, "IPV4"))
                 {
                     index = tmpResponse["prefix"].Number();
                     if(CIDR_NETMASK_IP_LEN <= index)
                         return Core::ERROR_GENERAL;
                     response["netmask"]  = CIDR_PREFIXES[index];
                 }
-                else if ("IPV6" == ipversion)
+                else if (caseInsensitiveCompare(ipversion, "IPV6"))
                 {
                     response["netmask"]  = tmpResponse["prefix"];
                 }
@@ -509,7 +516,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             if (Core::ERROR_NONE == rc)
             {
                 response["connectedToInternet"] = tmpResponse["isConnectedToInternet"];
-                if(ipversion == "IPV4" || ipversion == "IPV6")
+                if(caseInsensitiveCompare(ipversion, "IPV4") || caseInsensitiveCompare(ipversion, "IPV6"))
                     response["ipversion"] = ipversion.c_str();
                 response["success"] = true;
             }
@@ -537,8 +544,8 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             if (Core::ERROR_NONE == rc)
             {
                 status = tmpResponse["status"].String();
-                NMLOG_TRACE("status = %s\n", status.c_str() );
-                NMLOG_TRACE("tmpResponse[status].String() = %s\n", tmpResponse["status"].String().c_str() );
+                NMLOG_TRACE("status = %s", status.c_str() );
+                NMLOG_TRACE("tmpResponse[status].String() = %s", tmpResponse["status"].String().c_str() );
                 if(status == "LIMITED_INTERNET")
                     response["state"] = static_cast<int>(2);
                 else if(status == "CAPTIVE_PORTAL")
@@ -553,7 +560,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 else
                     response["state"] = static_cast<int>(0);
 
-                if(ipversion == "IPV4" || ipversion == "IPV6")
+                if(caseInsensitiveCompare(ipversion, "IPV4") || caseInsensitiveCompare(ipversion, "IPV6"))
                     response["ipversion"] = ipversion.c_str();
                 response["success"] = true;
             }
@@ -624,9 +631,9 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             JsonObject tmpResponse;
 
             LOGINFOMETHOD();
-            if("WIFI" == parameters["iface"].String())
+            if(caseInsensitiveCompare(parameters["iface"].String(), "WIFI"))
                 interface = "wlan0";
-            else if("ETHERNET" == parameters["iface"].String())
+            else if(caseInsensitiveCompare(parameters["iface"].String(), "ETHERNET"))
                 interface = "eth0";
 
              if(parameters["ipv6"].Boolean())
@@ -660,9 +667,9 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             string interface = parameters["interface"].String();
             string newInterface = "";
 
-            if("WIFI" == interface)
+            if(caseInsensitiveCompare(interface, "WIFI"))
                 newInterface = "wlan0";
-            else if("ETHERNET" == interface)
+            else if(caseInsensitiveCompare(interface, "ETHERNET"))
                 newInterface = "eth0";
 
             tmpParameters["interface"] = newInterface;

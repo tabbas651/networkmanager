@@ -503,7 +503,7 @@ namespace WPEFramework
                     if (Core::ERROR_NONE == errCode)
                         m_subsWiFiStateChange = true;
                     else
-                        NMLOG_ERROR ("Subscribe to onInterfaceStateChange failed, errCode: %u", errCode);
+                        NMLOG_ERROR ("Subscribe to onWiFiStateChange failed, errCode: %u", errCode);
                 }
 
                 if (!m_subsAvailableSSIDs)
@@ -512,7 +512,7 @@ namespace WPEFramework
                     if (Core::ERROR_NONE == errCode)
                         m_subsAvailableSSIDs = true;
                     else
-                        NMLOG_ERROR("Subscribe to onIPAddressChange failed, errCode: %u", errCode);
+                        NMLOG_ERROR("Subscribe to onAvailableSSIDs failed, errCode: %u", errCode);
                 }
 
                 if (!m_subsWiFiStrengthChange)
@@ -521,7 +521,7 @@ namespace WPEFramework
                     if (Core::ERROR_NONE == errCode)
                         m_subsWiFiStrengthChange = true;
                     else
-                        NMLOG_ERROR("Subscribe to onActiveInterfaceChange failed, errCode: %u", errCode);
+                        NMLOG_ERROR("Subscribe to onWiFiSignalStrengthChange failed, errCode: %u", errCode);
                 }
             }
 
