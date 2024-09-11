@@ -964,7 +964,7 @@ No Events
 | params | object |  |
 | params.endpoint | string | The host name or IP address |
 | params.ipversion | string | either IPv4 or IPv6 |
-| params.noOfRequest | integer | The number of packets to send. Default is 15 |
+| params.noOfRequest | integer | <sup>*(optional)*</sup> The number of packets to send. Default is 3 |
 | params.timeout | integer | Timeout |
 | params.guid | string | The globally unique identifier |
 
@@ -1042,7 +1042,7 @@ No Events
 | params | object |  |
 | params.ipversion| string  | <sup>*(optional)*</sup> The host name or IP address |
 | params.endpoint | string  | The host name or IP address |
-| params.packets  | integer | <sup>*(optional)*</sup> The number of packets to send. Default is 10 |
+| params.packets  | integer | <sup>*(optional)*</sup> The number of packets to send. Default is 5 |
 | params.guid     | string  | <sup>*(optional)*</sup> The globally unique identifier |
 
 ### Result
@@ -1065,7 +1065,7 @@ No Events
     "method": "org.rdk.NetworkManager.Trace",
     "params": {
         "endpoint": "45.57.221.20",
-        "packets": 10
+        "packets": 5
     }
 }
 ```
