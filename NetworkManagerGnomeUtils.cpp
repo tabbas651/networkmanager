@@ -17,6 +17,9 @@ namespace WPEFramework
 {
     namespace Plugin
     {
+        static const char* ifnameEth = "eth0";
+        static const char* ifnameWlan = "wlan0";
+
        uint8_t nmUtils::wifiSecurityModeFromAp(guint32 flags, guint32 wpaFlags, guint32 rsnFlags)
        {
             uint8_t security = Exchange::INetworkManager::WIFI_SECURITY_NONE;
@@ -249,36 +252,66 @@ namespace WPEFramework
             }
         }
 
+        bool nmUtils::caseInsensitiveCompare(const std::string& str1, const std::string& str2) {
+            std::string upperStr1 = str1;
+            std::string upperStr2 = str2;
 
-        uint32_t nmUtils::GetInterfacesName(string &wifiInterface, string &ethernetInterface) {
-            string line;
-            uint32_t rc = Core::ERROR_GENERAL;
+            // Convert both strings to uppercase
+            std::transform(upperStr1.begin(), upperStr1.end(), upperStr1.begin(), ::toupper);
+            std::transform(upperStr2.begin(), upperStr2.end(), upperStr2.begin(), ::toupper);
 
-            ifstream file("/etc/device.properties");
-            if (!file.is_open()) {
-                NMLOG_WARNING("/etc/device.properties opening file Error ");
-                return rc;
+            return upperStr1 == upperStr2;
+        }
+
+        bool nmUtils::GetInterfacesName(std::string &wifiIfname ,std::string &ethIfname)
+        {
+            std::string line;
+            static bool fileParsingCompleted = false;
+            static std::string m_wifiIfname;
+            static std::string m_ethIfname; // cached interface name
+            wifiIfname.clear();
+            ethIfname.clear();
+            if(fileParsingCompleted)
+            {
+                if(!m_wifiIfname.empty())
+                    wifiIfname = m_wifiIfname;
+                if(!m_ethIfname.empty())
+                    ethIfname = m_ethIfname;
+                return true;
             }
 
-            while (std::getline(file, line)) {
-                // Remove newline character if present
-                if (!line.empty() && line.back() == '\n') {
-                    line.pop_back();
+            std::ifstream file("/etc/device.properties");
+            if (!file.is_open()) {
+                NMLOG_FATAL("/etc/device.properties opening file Error");
+                return false;
+            }
+
+            while (std::getline(file, line))
+            {
+                if (line.empty()) {
+                    continue;
+                }
+                if (line.find("ETHERNET_INTERFACE=") != std::string::npos) {
+                    ethIfname = line.substr(line.find('=') + 1);
+                    ethIfname.erase(ethIfname.find_last_not_of("\r\n\t") + 1);
+                    ethIfname.erase(0, ethIfname.find_first_not_of("\r\n\t"));
                 }
 
-                istringstream iss(line);
-                string token;
-                getline(iss, token, '=');
-
-                if (token == "WIFI_INTERFACE") {
-                    std::getline(iss, wifiInterface, '=');
-                } else if (token == "ETHERNET_INTERFACE") {
-                    std::getline(iss, ethernetInterface, '=');
+                if (line.find("WIFI_INTERFACE=") != std::string::npos) {
+                    wifiIfname = line.substr(line.find('=') + 1);
+                    wifiIfname.erase(wifiIfname.find_last_not_of("\r\n\t") + 1);
+                    wifiIfname.erase(0, wifiIfname.find_first_not_of("\r\n\t"));
                 }
             }
             file.close();
-            return Core::ERROR_NONE;
+            if (ethIfname.empty() && wifiIfname.empty()) {
+                NMLOG_FATAL("Could not find any interface name in /etc/device.properties");
+                return false;
+            }
+            m_wifiIfname = wifiIfname;
+            m_ethIfname = ethIfname;
+            fileParsingCompleted = true;
+            return true;
         }
-
     }   // Plugin
 }   // WPEFramework
