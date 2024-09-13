@@ -199,6 +199,13 @@ namespace WPEFramework
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
             string interface = parameters["interface"].String();
+
+            if ("wlan0" != interface && "eth0" != interface)
+            {
+                rc = Core::ERROR_BAD_REQUEST;
+                return rc;
+            }
+
             if (_NetworkManager)
                 rc = _NetworkManager->SetPrimaryInterface(interface);
             else
@@ -218,6 +225,13 @@ namespace WPEFramework
             uint32_t rc = Core::ERROR_GENERAL;
             string interface = parameters["interface"].String();
             bool enabled = parameters["enabled"].Boolean();
+
+            if ("wlan0" != interface && "eth0" != interface)
+            {
+                rc = Core::ERROR_BAD_REQUEST;
+                return rc;
+            }
+
             if (_NetworkManager)
                 rc = _NetworkManager->SetInterfaceState(interface, enabled);
             else
@@ -237,6 +251,12 @@ namespace WPEFramework
             uint32_t rc = Core::ERROR_GENERAL;
             bool isEnabled = false;
             string interface = parameters["interface"].String();
+
+            if ("wlan0" != interface && "eth0" != interface)
+            {
+                rc = Core::ERROR_BAD_REQUEST;
+                return rc;
+            }
 
             if (_NetworkManager)
                 rc = _NetworkManager->GetInterfaceState(interface, isEnabled);
@@ -264,6 +284,13 @@ namespace WPEFramework
                 interface = parameters["interface"].String();
             if (parameters.HasLabel("ipversion"))
                 ipversion = parameters["ipversion"].String();
+
+            if ("wlan0" != interface && "eth0" != interface)
+            {
+                rc = Core::ERROR_BAD_REQUEST;
+                return rc;
+            }
+
             if (_NetworkManager)
                 rc = _NetworkManager->GetIPSettings(interface, ipversion, result);
             else
@@ -272,8 +299,11 @@ namespace WPEFramework
             if (Core::ERROR_NONE == rc)
             {
                 response["interface"] = interface;
-                if(result.m_ipAddrType == "IPV6" || result.m_ipAddrType == "IPV4")
-                    result.m_ipAddrType[2] = tolower(result.m_ipAddrType[2]);
+
+                if (strcasecmp (result.m_ipAddrType.c_str(), "IPv4") == 0)
+                    result.m_ipAddrType = "IPv4";
+                else if (strcasecmp (result.m_ipAddrType.c_str(), "IPv6") == 0)
+                    result.m_ipAddrType = "IPv6";
                 response["ipversion"] = result.m_ipAddrType;
                 response["autoconfig"]   = result.m_autoConfig;
                 response["ipaddress"]    = result.m_ipAddress;
@@ -302,6 +332,13 @@ namespace WPEFramework
                 interface = parameters["interface"].String();
             if (parameters.HasLabel("ipversion"))
                 ipversion = parameters["ipversion"].String();
+
+            if ("wlan0" != interface && "eth0" != interface)
+            {
+                rc = Core::ERROR_BAD_REQUEST;
+                return rc;
+            }
+
             result.m_autoConfig = parameters["autoconfig"].Boolean();
             if (!result.m_autoConfig)
             {
