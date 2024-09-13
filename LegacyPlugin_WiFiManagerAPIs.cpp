@@ -331,7 +331,7 @@ namespace WPEFramework
             JsonArray array = tmpResponse["ssids"].Array();
             if (0 == array.Length())
             {
-                response["ssid"] = NULL;
+                response["ssid"] = ""; /* Assigning empty string when paired SSID is not available */
             }
             else
             {
