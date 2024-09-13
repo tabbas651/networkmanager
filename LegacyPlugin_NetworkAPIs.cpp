@@ -462,7 +462,6 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             if (Core::ERROR_NONE == rc)
             {
                 string ipversion = tmpResponse["ipversion"].String();
-                std::transform(ipversion.begin(), ipversion.end(), ipversion.begin(), ::toupper);
 
                 if (parameters.HasLabel("interface"))
                 {
