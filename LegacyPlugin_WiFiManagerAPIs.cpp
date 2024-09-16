@@ -552,7 +552,7 @@ namespace WPEFramework
                 }
             }
             else
-                NMLOG_ERROR("m_subsWiFiStateChange is null");
+                NMLOG_ERROR("m_networkmanager is null");
 
             if (m_subsWiFiStateChange && m_subsAvailableSSIDs && m_subsWiFiStrengthChange)
             {
