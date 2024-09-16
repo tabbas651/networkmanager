@@ -321,11 +321,23 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
+            JsonObject tmpResponse;
 
             if (m_networkmanager)
-                rc =  m_networkmanager->Invoke<JsonObject, JsonObject>(5000, _T("GetKnownSSIDs"), parameters, response);
+                rc =  m_networkmanager->Invoke<JsonObject, JsonObject>(5000, _T("GetKnownSSIDs"), parameters, tmpResponse);
             else
                 rc = Core::ERROR_UNAVAILABLE;
+
+            JsonArray array = tmpResponse["ssids"].Array();
+            if (0 == array.Length())
+            {
+                response["ssid"] = ""; /* Assigning empty string when paired SSID is not available */
+            }
+            else
+            {
+                response["ssid"] = array[0];
+            }
+            response["success"] = tmpResponse["success"];
 
             LOGTRACEMETHODFIN();
             return rc;
