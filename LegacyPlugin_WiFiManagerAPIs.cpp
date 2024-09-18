@@ -148,9 +148,9 @@ namespace WPEFramework
             }
         
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-            m_networkmanager = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(_T(NETWORK_MANAGER_CALLSIGN), _T(NETWORK_MANAGER_CALLSIGN), false, query);
+            m_networkmanager = make_shared<WPEFramework::JSONRPC::SmartLinkType<WPEFramework::Core::JSON::IElement> >(_T(NETWORK_MANAGER_CALLSIGN), _T("org.rdk.Wifi"), query);
 
-            doTheSubscriptions();
+            subscribeToEvents();
             return string();
         }
 
@@ -504,21 +504,6 @@ namespace WPEFramework
         }
 
         /** Private */
-        void WiFiManager::doTheSubscriptions(void)
-        {
-            uint32_t result = Core::ERROR_ASYNC_FAILED;
-            Core::Event event(false, true);
-            Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]() {
-                NMLOG_INFO ("Start Subscription %s", __FUNCTION__);
-                subscribeToEvents();
-                m_timer.start(SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS);
-                event.SetEvent();
-            })));
-            event.Lock();
-
-            return;
-        }
-
         void WiFiManager::subscribeToEvents(void)
         {
             uint32_t errCode = Core::ERROR_GENERAL;

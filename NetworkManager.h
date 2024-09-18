@@ -247,7 +247,7 @@ namespace WPEFramework
             // find the real implementation
             // This allows other components to call QueryInterface<INetworkManager>() and
             // receive the actual implementation (which could be in-process or out-of-process)
-            INTERFACE_AGGREGATE(Exchange::INetworkManager, _NetworkManager)
+            INTERFACE_AGGREGATE(Exchange::INetworkManager, _networkManager)
             END_INTERFACE_MAP
 
             /*
@@ -311,7 +311,8 @@ namespace WPEFramework
         private:
             uint32_t _connectionId;
             PluginHost::IShell *_service;
-            Exchange::INetworkManager *_NetworkManager;
+            PluginHost::IPlugin* _networkManagerImpl;
+            Exchange::INetworkManager *_networkManager;
             Core::Sink<Notification> _notification;
             string m_publicIPAddress;
             string m_defaultInterface;
