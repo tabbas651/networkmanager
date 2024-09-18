@@ -99,14 +99,13 @@ namespace WPEFramework {
             void registerLegacyMethods(void);
             void unregisterLegacyMethods(void);
             void subscribeToEvents(void);
-            void doTheSubscriptions(void);
             static std::string getInterfaceMapping(const std::string &interface);
             static bool ErrorCodeMapping(const uint32_t ipvalue , uint32_t &opvalue);
             void activatePrimaryPlugin();
 
         private:
             PluginHost::IShell* m_service;
-            std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> m_networkmanager;
+            std::shared_ptr<WPEFramework::JSONRPC::SmartLinkType<WPEFramework::Core::JSON::IElement>> m_networkmanager;
             NetworkManagerTimer m_timer;
             bool m_subsWiFiStateChange;
             bool m_subsAvailableSSIDs;
