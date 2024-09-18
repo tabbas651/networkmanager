@@ -28,6 +28,11 @@ set(PLUGIN_LEGACY_DEPRECATED_WIFI    ${NAMESPACE}WiFiManager)
 find_package(${NAMESPACE}Core REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CURL)
+
+set(PLUGIN_NETWORKMANAGER_STARTUPORDER "55" CACHE STRING "To configure startup order of Unified NetworkManager plugin")
+set(PLUGIN_LEGACY_NW_STARTUPORDER "56" CACHE STRING "To configure startup order of Legacy Network plugin")
+set(PLUGIN_LEGACY_WIFI_STARTUPORDER "56" CACHE STRING "To configure startup order of Legacy WiFi plugin")
+
 if(ENABLE_GNOME_NETWORKMANAGER)
 pkg_check_modules(GLIB REQUIRED glib-2.0)
 pkg_check_modules(LIBNM REQUIRED libnm)

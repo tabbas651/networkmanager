@@ -125,8 +125,8 @@ namespace WPEFramework
                 NetworkManagerLogger::SetLevel(level);
 
                 const Exchange::INetworkManager::NMLogging log = static_cast <Exchange::INetworkManager::NMLogging> (level);
-                if (_NetworkManager)
-                    rc = _NetworkManager->SetLogLevel(log);
+                if (_networkManager)
+                    rc = _networkManager->SetLogLevel(log);
                 else
                     rc = Core::ERROR_UNAVAILABLE;
             }
@@ -144,8 +144,8 @@ namespace WPEFramework
 
             uint32_t rc = Core::ERROR_GENERAL;
             Exchange::INetworkManager::IInterfaceDetailsIterator* interfaces = NULL;
-            if (_NetworkManager)
-                rc = _NetworkManager->GetAvailableInterfaces(interfaces);
+            if (_networkManager)
+                rc = _networkManager->GetAvailableInterfaces(interfaces);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -179,8 +179,8 @@ namespace WPEFramework
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
             string interface;
-            if (_NetworkManager)
-                rc = _NetworkManager->GetPrimaryInterface(interface);
+            if (_networkManager)
+                rc = _networkManager->GetPrimaryInterface(interface);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -206,8 +206,8 @@ namespace WPEFramework
                 return rc;
             }
 
-            if (_NetworkManager)
-                rc = _NetworkManager->SetPrimaryInterface(interface);
+            if (_networkManager)
+                rc = _networkManager->SetPrimaryInterface(interface);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -232,8 +232,8 @@ namespace WPEFramework
                 return rc;
             }
 
-            if (_NetworkManager)
-                rc = _NetworkManager->SetInterfaceState(interface, enabled);
+            if (_networkManager)
+                rc = _networkManager->SetInterfaceState(interface, enabled);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -258,8 +258,8 @@ namespace WPEFramework
                 return rc;
             }
 
-            if (_NetworkManager)
-                rc = _NetworkManager->GetInterfaceState(interface, isEnabled);
+            if (_networkManager)
+                rc = _networkManager->GetInterfaceState(interface, isEnabled);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -291,8 +291,8 @@ namespace WPEFramework
                 return rc;
             }
 
-            if (_NetworkManager)
-                rc = _NetworkManager->GetIPSettings(interface, ipversion, result);
+            if (_networkManager)
+                rc = _networkManager->GetIPSettings(interface, ipversion, result);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -349,8 +349,8 @@ namespace WPEFramework
                 result.m_secondaryDns   = parameters["secondarydns"];
             }
 
-            if (_NetworkManager)
-                rc = _NetworkManager->SetIPSettings(interface, ipversion, result);
+            if (_networkManager)
+                rc = _networkManager->SetIPSettings(interface, ipversion, result);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -371,8 +371,8 @@ namespace WPEFramework
             uint32_t bindTimeout;
             uint32_t cacheTimeout;
 
-            if (_NetworkManager)
-                rc = _NetworkManager->GetStunEndpoint(endPoint, port, bindTimeout, cacheTimeout);
+            if (_networkManager)
+                rc = _networkManager->GetStunEndpoint(endPoint, port, bindTimeout, cacheTimeout);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -397,8 +397,8 @@ namespace WPEFramework
             uint32_t bindTimeout = parameters["bindTimeout"].Number();
             uint32_t cacheTimeout = parameters["cacheTimeout"].Number();
 
-            if (_NetworkManager)
-                rc = _NetworkManager->SetStunEndpoint(endPoint, port, bindTimeout, cacheTimeout);
+            if (_networkManager)
+                rc = _networkManager->SetStunEndpoint(endPoint, port, bindTimeout, cacheTimeout);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -417,8 +417,8 @@ namespace WPEFramework
             Exchange::INetworkManager::IStringIterator* endpoints = NULL;
             
 
-            if (_NetworkManager)
-                rc = _NetworkManager->GetConnectivityTestEndpoints(endpoints);
+            if (_networkManager)
+                rc = _networkManager->GetConnectivityTestEndpoints(endpoints);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -470,8 +470,8 @@ namespace WPEFramework
             }
             endpointsIter = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(endpoints));
 
-            if (_NetworkManager)
-                rc = _NetworkManager->SetConnectivityTestEndpoints(endpointsIter);
+            if (_networkManager)
+                rc = _networkManager->SetConnectivityTestEndpoints(endpointsIter);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -495,8 +495,8 @@ namespace WPEFramework
             Exchange::INetworkManager::InternetStatus result;
             
 
-            if (_NetworkManager)
-                rc = _NetworkManager->IsConnectedToInternet(ipversion, result);
+            if (_networkManager)
+                rc = _networkManager->IsConnectedToInternet(ipversion, result);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -533,8 +533,8 @@ namespace WPEFramework
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
             string endPoint;
-            if (_NetworkManager)
-                rc = _NetworkManager->GetCaptivePortalURI(endPoint);
+            if (_networkManager)
+                rc = _networkManager->GetCaptivePortalURI(endPoint);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -554,8 +554,8 @@ namespace WPEFramework
             uint32_t interval = parameters["interval"].Number();
 
             NMLOG_TRACE("connectivity interval = %d", interval);
-            if (_NetworkManager)
-                rc = _NetworkManager->StartConnectivityMonitoring(interval);
+            if (_networkManager)
+                rc = _networkManager->StartConnectivityMonitoring(interval);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -572,8 +572,8 @@ namespace WPEFramework
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
 
-            if (_NetworkManager)
-                rc = _NetworkManager->StopConnectivityMonitoring();
+            if (_networkManager)
+                rc = _networkManager->StopConnectivityMonitoring();
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -601,8 +601,8 @@ namespace WPEFramework
             }
             else
             {
-                if (_NetworkManager)
-                    rc = _NetworkManager->GetPublicIP(ipversion, ipAddress);
+                if (_networkManager)
+                    rc = _networkManager->GetPublicIP(ipversion, ipAddress);
                 else
                     rc = Core::ERROR_UNAVAILABLE;
             }
@@ -675,8 +675,8 @@ namespace WPEFramework
                 if (parameters.HasLabel("guid"))
                     guid = parameters["guid"].String();
 
-                if (_NetworkManager)
-                    rc = _NetworkManager->Ping(ipversion, endpoint, noOfRequest, timeOutInSeconds, guid, result);
+                if (_networkManager)
+                    rc = _networkManager->Ping(ipversion, endpoint, noOfRequest, timeOutInSeconds, guid, result);
                 else
                     rc = Core::ERROR_UNAVAILABLE;
             }
@@ -701,8 +701,8 @@ namespace WPEFramework
             const uint32_t noOfRequest  = parameters["packets"].Number();
             const string guid           = parameters["guid"].String();
 
-            if (_NetworkManager)
-                rc = _NetworkManager->Trace(ipversion, endpoint, noOfRequest, guid, result);
+            if (_networkManager)
+                rc = _networkManager->Trace(ipversion, endpoint, noOfRequest, guid, result);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -723,8 +723,8 @@ namespace WPEFramework
             uint32_t rc = Core::ERROR_GENERAL;
             const Exchange::INetworkManager::WiFiFrequency frequency = static_cast <Exchange::INetworkManager::WiFiFrequency> (parameters["frequency"].Number());
 
-            if (_NetworkManager)
-                rc = _NetworkManager->StartWiFiScan(frequency);
+            if (_networkManager)
+                rc = _networkManager->StartWiFiScan(frequency);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -741,8 +741,8 @@ namespace WPEFramework
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
 
-            if (_NetworkManager)
-                rc = _NetworkManager->StopWiFiScan();
+            if (_networkManager)
+                rc = _networkManager->StopWiFiScan();
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -762,8 +762,8 @@ namespace WPEFramework
             JsonArray ssids;
             ::WPEFramework::RPC::IIteratorType<string, RPC::ID_STRINGITERATOR>* _ssids{};
 
-            if (_NetworkManager)
-                rc = _NetworkManager->GetKnownSSIDs(_ssids);
+            if (_networkManager)
+                rc = _networkManager->GetKnownSSIDs(_ssids);
 
             if (Core::ERROR_NONE == rc)
             {
@@ -797,8 +797,8 @@ namespace WPEFramework
                 ssid.m_passphrase      = parameters["passphrase"].String();
                 ssid.m_securityMode    = static_cast <Exchange::INetworkManager::WIFISecurityMode> (parameters["securityMode"].Number());
 
-                if (_NetworkManager)
-                    rc = _NetworkManager->AddToKnownSSIDs(ssid);
+                if (_networkManager)
+                    rc = _networkManager->AddToKnownSSIDs(ssid);
                 else
                     rc = Core::ERROR_UNAVAILABLE;
             }
@@ -820,8 +820,8 @@ namespace WPEFramework
             if (parameters.HasLabel("ssid"))
             {
                 ssid = parameters["ssid"].String();
-                if (_NetworkManager)
-                    rc = _NetworkManager->RemoveKnownSSID(ssid);
+                if (_networkManager)
+                    rc = _networkManager->RemoveKnownSSID(ssid);
                 else
                     rc = Core::ERROR_UNAVAILABLE;
             }
@@ -861,8 +861,8 @@ namespace WPEFramework
                 ssid.m_persistSSIDInfo   = parameters["persistSSIDInfo"].Boolean();
             else
                 ssid.m_persistSSIDInfo   = true;
-            if (_NetworkManager)
-                rc = _NetworkManager->WiFiConnect(ssid);
+            if (_networkManager)
+                rc = _networkManager->WiFiConnect(ssid);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -879,8 +879,8 @@ namespace WPEFramework
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
 
-            if (_NetworkManager)
-                rc = _NetworkManager->WiFiDisconnect();
+            if (_networkManager)
+                rc = _networkManager->WiFiDisconnect();
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -898,8 +898,8 @@ namespace WPEFramework
             uint32_t rc = Core::ERROR_GENERAL;
             Exchange::INetworkManager::WiFiSSIDInfo ssidInfo{};
 
-            if (_NetworkManager)
-                rc = _NetworkManager->GetConnectedSSID(ssidInfo);
+            if (_networkManager)
+                rc = _networkManager->GetConnectedSSID(ssidInfo);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -937,8 +937,8 @@ namespace WPEFramework
                 wps_pin = parameters["wps_pin"].String();
             }
 
-            if (_NetworkManager)
-                rc = _NetworkManager->StartWPS(method, wps_pin);
+            if (_networkManager)
+                rc = _networkManager->StartWPS(method, wps_pin);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -955,8 +955,8 @@ namespace WPEFramework
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
 
-            if (_NetworkManager)
-                rc = _NetworkManager->StopWPS();
+            if (_networkManager)
+                rc = _networkManager->StopWPS();
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -974,8 +974,8 @@ namespace WPEFramework
             uint32_t rc = Core::ERROR_GENERAL;
 
             LOGINFOMETHOD();
-            if (_NetworkManager)
-                rc = _NetworkManager->GetWifiState(state);
+            if (_networkManager)
+                rc = _networkManager->GetWifiState(state);
             else
                 rc = Core::ERROR_UNAVAILABLE;
             if (Core::ERROR_NONE == rc)
@@ -995,8 +995,8 @@ namespace WPEFramework
             string signalStrength{};
             Exchange::INetworkManager::WiFiSignalQuality quality;
 
-            if (_NetworkManager)
-                rc = _NetworkManager->GetWiFiSignalStrength(ssid, signalStrength, quality);
+            if (_networkManager)
+                rc = _networkManager->GetWiFiSignalStrength(ssid, signalStrength, quality);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -1017,8 +1017,8 @@ namespace WPEFramework
             uint32_t rc = Core::ERROR_GENERAL;
             Exchange::INetworkManager::ISecurityModeIterator* securityModes{};
 
-            if (_NetworkManager)
-                rc = _NetworkManager->GetSupportedSecurityModes(securityModes);
+            if (_networkManager)
+                rc = _networkManager->GetSupportedSecurityModes(securityModes);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 

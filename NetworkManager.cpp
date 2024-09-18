@@ -39,7 +39,8 @@ namespace WPEFramework
         NetworkManager::NetworkManager()
             : _connectionId(0),
               _service(nullptr),
-              _NetworkManager(nullptr),
+              _networkManagerImpl(nullptr),
+              _networkManager(nullptr),
               _notification(this)
         {
             // Don't do any work in the constructor - all set up should be done in Initialize
@@ -63,7 +64,7 @@ namespace WPEFramework
         {
             // Make sure everything is null as we expect
             ASSERT(_service == nullptr);
-            ASSERT(_NetworkManager == nullptr);
+            ASSERT(_networkManager == nullptr);
 
             // Syslog Startup messages are always printed by default
             SYSLOG(Logging::Startup, (_T("Initializing NetworkManager")));
@@ -81,20 +82,23 @@ namespace WPEFramework
             //
             // Ideally for large, complex plugins we would actually split the plugin into two libraries - a thin library that just calls
             // _service->Root to launch WPEProcess, and a larger library that is only ever run inside WPEProcess only (we do this for Cobalt and WebKitBrowser)
-            _NetworkManager = service->Root<Exchange::INetworkManager>(_connectionId, 25000, _T("NetworkManagerImplementation"));
+            _networkManager = service->Root<Exchange::INetworkManager>(_connectionId, 25000, _T("NetworkManagerImplementation"));
 
             // Still running inside the main WPEFramework process - the child process will have now been spawned and registered if necessary
-            if (_NetworkManager != nullptr)
+            if (_networkManager != nullptr)
             {
                 // set the plugin configuration
                 Exchange::INetworkManager::NMLogging _loglevel;
-                _NetworkManager->Configure(_service->ConfigLine(), _loglevel);
+                _networkManager->Configure(_service->ConfigLine(), _loglevel);
                 // configure loglevel in libWPEFrameworkNetworkManager.so
                 NetworkManagerLogger::SetLevel(static_cast <NetworkManagerLogger::LogLevel>(_loglevel));
-                _NetworkManager->Register(&_notification);
+                _networkManager->Register(&_notification);
 
                 // Register all custom JSON-RPC methods
                 RegisterAllMethods();
+
+                // Get IPlugin interface for this plugin
+                _networkManagerImpl = _networkManager->QueryInterface<PluginHost::IPlugin>();
             }
             else
             {
@@ -119,26 +123,44 @@ namespace WPEFramework
         void NetworkManager::Deinitialize(PluginHost::IShell *service)
         {
             ASSERT(_service == service);
-            ASSERT(_NetworkManager != nullptr);
+            ASSERT(_networkManager != nullptr);
 
             TRACE(Trace::Information, (_T("Deinitializing NetworkManager")));
             TRACE(Trace::Information, (_T("Deinitialize running in process %d"), Core::ProcessInfo().Id()));
 
-            if (_NetworkManager != nullptr)
+            if (_networkManager != nullptr)
             {
                 // TODO:: Work out exactly what triggers the shutdown of the out-of-process host
                 _service->Unregister(&_notification);
-                _NetworkManager->Unregister(&_notification);
+                _networkManager->Unregister(&_notification);
 
                 // Unregister all our JSON-RPC methods
                 UnregisterAllMethods();
-                _NetworkManager->Release();
+
+                // Release the IPlugin
+                if(_networkManagerImpl)
+                {
+                    _networkManagerImpl->Release();
+                    _networkManagerImpl = nullptr;
+                }
+
+                RPC::IRemoteConnection* connection = service->RemoteConnection(_connectionId);
+                _networkManager->Release();
+                if (connection != nullptr) {
+                    // Lets trigger the cleanup sequence for
+                    // out-of-process code. Which will guard
+                    // that unwilling processes, get shot if
+                    // not stopped friendly :-)
+                    connection->Terminate();
+                    connection->Release();
+                }
             }
 
             // Set everything back to default
             _connectionId = 0;
             _service = nullptr;
-            _NetworkManager = nullptr;
+            _networkManagerImpl = nullptr;
+            _networkManager = nullptr;
         }
 
         string NetworkManager::Information() const

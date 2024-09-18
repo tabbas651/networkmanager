@@ -1,5 +1,5 @@
-autostart = "true"
 callsign= "org.rdk.NetworkManager"
+startuporder = "@PLUGIN_NETWORKMANAGER_STARTUPORDER@"
 
 process= JSON()
 process.add("outofprocess", "true")

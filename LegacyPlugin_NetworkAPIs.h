@@ -31,7 +31,6 @@ namespace WPEFramework {
             void registerLegacyMethods(void);
             void unregisterLegacyMethods(void);
             void subscribeToEvents(void);
-            void doTheSubscriptions(void);
             static std::string getInterfaceMapping(const std::string &interface);
             void activatePrimaryPlugin();
 
@@ -83,7 +82,7 @@ namespace WPEFramework {
 
         private:
             PluginHost::IShell* m_service;
-            std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> m_networkmanager;
+            std::shared_ptr<WPEFramework::JSONRPC::SmartLinkType<WPEFramework::Core::JSON::IElement>> m_networkmanager;
             string m_defaultInterface;
             NetworkManagerTimer m_timer;
 
