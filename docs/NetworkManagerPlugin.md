@@ -2,7 +2,7 @@
 <a name="head.NetworkManager_Plugin"></a>
 # NetworkManager Plugin
 
-**Version: [0.2.11]()**
+**Version: [0.3.0]()**
 
 A NetworkManager plugin for Thunder framework.
 
@@ -367,7 +367,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
+| params.interface | string | <sup>*(optional)*</sup> An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface. If this is empty, default interface will be returned |
 | params?.ipversion | string | <sup>*(optional)*</sup> either IPv4 or IPv6 |
 
 ### Result
