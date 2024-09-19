@@ -285,7 +285,7 @@ namespace WPEFramework
             if (parameters.HasLabel("ipversion"))
                 ipversion = parameters["ipversion"].String();
 
-            if ("wlan0" != interface && "eth0" != interface && "" != interface)
+            if (!interface.empty() && ("wlan0" != interface) && ("eth0" != interface))
             {
                 rc = Core::ERROR_BAD_REQUEST;
                 return rc;
