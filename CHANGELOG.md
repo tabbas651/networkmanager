@@ -16,6 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [0.3.0] - 2024-09-16
+### Added
+- Gnome Network Manager support
+- Fixed the missing Error events
+- Fixed activation & subscription flow
+- Includes bug fixes
+
+
 ## [0.2.0] - 2024-05-27
 ### Added
 - Restructured the NetworkManager folder organization
