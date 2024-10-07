@@ -629,7 +629,7 @@ namespace WPEFramework
                 std::vector<InterfaceDetails> interfaceList;
                 for (int i = 0; i < list.size; i++)
                 {
-                    NMLOG_INFO ("Interface Name = %s", list.interfaces[i].name);
+                    NMLOG_DEBUG("Interface Name = %s", list.interfaces[i].name);
                     string interfaceName(list.interfaces[i].name);
                     if (("eth0" == interfaceName) || ("wlan0" == interfaceName))
                     {
