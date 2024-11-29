@@ -1640,6 +1640,7 @@ Get WiFiSignalStrength of connected SSID. The signal quality is identifed based 
 * 'Good'
 * 'Fair'
 * 'Weak'
+* 'Disconnected'
 .
 
 Also see: [onWiFiSignalStrengthChange](#event.onWiFiSignalStrengthChange)
